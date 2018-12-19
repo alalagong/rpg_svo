@@ -349,18 +349,18 @@ void setupG2o(g2o::SparseOptimizer * optimizer)
 
 #if SCHUR_TRICK
   // solver
-  g2o::BlockSolver_6_3::LinearSolverType* linearSolver;
-  linearSolver = new g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>();
+  // g2o::BlockSolver_6_3::LinearSolverType* linearSolver;
+  auto linearSolver =  g2o::make_unique< g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();
   //linearSolver = new g2o::LinearSolverCSparse<g2o::BlockSolver_6_3::PoseMatrixType>();
 
-  g2o::BlockSolver_6_3 * solver_ptr = new g2o::BlockSolver_6_3(linearSolver);
-  g2o::OptimizationAlgorithmLevenberg * solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
+  auto solver_ptr = g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver));
+  g2o::OptimizationAlgorithmLevenberg * solver = new g2o::OptimizationAlgorithmLevenberg( std::move(solver_ptr));
 #else
-  g2o::BlockSolverX::LinearSolverType * linearSolver;
-  linearSolver = new g2o::LinearSolverCholmod<g2o::BlockSolverX::PoseMatrixType>();
+  // g2o::BlockSolverX::LinearSolverType * linearSolver;
+  auto linearSolver = g2o::make_unique< g2o::LinearSolverCholmod<g2o::BlockSolverX::PoseMatrixType>> ();
   //linearSolver = new g2o::LinearSolverCSparse<g2o::BlockSolverX::PoseMatrixType>();
-  g2o::BlockSolverX * solver_ptr = new g2o::BlockSolverX(linearSolver);
-  g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
+  auto solver_ptr = g2o::make_unique <g2o::BlockSolverX> (std::move(linearSolver));
+  g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg( std::move(solver_ptr));
 #endif
 
   solver->setMaxTrialsAfterFailure(5);

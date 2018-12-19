@@ -41,12 +41,12 @@ public:
   cv::Mat resimg_;
 
   SparseImgAlign(
-      int n_levels,
-      int min_level,
-      int n_iter,
-      Method method,
-      bool display,
-      bool verbose);
+      int n_levels,    // = max_level = max_level_  粗金字塔
+      int min_level,   // = min_level_  细金字塔 
+      int n_iter,      // 迭代次数, 继承自vk::NLLSSolver
+      Method method,   // GN 和 LM
+      bool display,    // = display_
+      bool verbose);   // = verbose_ 继承来, 输出统计信息
 
   size_t run(
       FramePtr ref_frame,

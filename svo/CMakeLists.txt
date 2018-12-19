@@ -2,7 +2,7 @@
 # user build settings
 
 SET(TRACE TRUE)
-SET(HAVE_G2O FALSE) 
+SET(HAVE_G2O TRUE) 
 SET(USE_ROS TRUE) # Set FALSE if you want to build this package without Catkin
 SET(DEBUG_OUTPUT FALSE) # Only relevant if build without ROS
 
@@ -11,7 +11,7 @@ SET(DEBUG_OUTPUT FALSE) # Only relevant if build without ROS
 SET(PROJECT_NAME svo)
 PROJECT(${PROJECT_NAME})
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8.3)
-SET(CMAKE_BUILD_TYPE Release) # Release, RelWithDebInfo
+SET(CMAKE_BUILD_TYPE Debug) # Release, RelWithDebInfo
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules/")
 
