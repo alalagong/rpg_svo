@@ -62,7 +62,7 @@ SparseImgAlign::SparseImgAlign(
  *******************************/
 size_t SparseImgAlign::run(FramePtr ref_frame, FramePtr cur_frame)
 { 
-  //[***step 1***] 复位NLLSSolver的变量值
+//[***step 1***] 复位NLLSSolver的变量值
   reset();
 
   if(ref_frame->fts_.empty())
@@ -74,7 +74,7 @@ size_t SparseImgAlign::run(FramePtr ref_frame, FramePtr cur_frame)
   ref_frame_ = ref_frame;
   cur_frame_ = cur_frame;
 
-  //[***step 2***] 初始化cache
+//[***step 2***] 初始化cache
   //存储每个特征点的patch, 大小 (features_size*patch_area(4*4))
   ref_patch_cache_ = cv::Mat(ref_frame_->fts_.size(), patch_area_, CV_32F);
   //存储每个所有patch的雅克比, 大小 (6*ref_patch_cache_.size)
@@ -82,12 +82,12 @@ size_t SparseImgAlign::run(FramePtr ref_frame, FramePtr cur_frame)
   //存储可见的特征点, 类型vector<bool> 大小 feature_size, 默认都为false
   visible_fts_.resize(ref_patch_cache_.rows, false); // TODO: should it be reset at each level?
 
-  //[***step 3***] 获得从参考帧到当前帧之间的变换 
+//[***step 3***] 获得从参考帧到当前帧之间的变换 
   // T_cur_from_world = T_cur_from_ref * T_ref_from_world
   // T_[to]_[from]  T_A_C = T_A_B * T_B_C
   SE3 T_cur_from_ref(cur_frame_->T_f_w_ * ref_frame_->T_f_w_.inverse());
 
-  //[***step 4***] 在不同的金字塔层对T_c_r进行稀疏图像对齐优化, 由粗到精, 具有更好的初值
+//[***step 4***] 在不同的金字塔层对T_c_r进行稀疏图像对齐优化, 由粗到精, 具有更好的初值
   // 在4level到2level之间
   for(level_=max_level_; level_>=min_level_; --level_)
   {
@@ -99,7 +99,7 @@ size_t SparseImgAlign::run(FramePtr ref_frame, FramePtr cur_frame)
     optimize(T_cur_from_ref);
   }
 
-  //[***step 5***] 利用求得的T_c_r 求得 T_c_w
+//[***step 5***] 利用求得的T_c_r 求得 T_c_w
   cur_frame_->T_f_w_ = T_cur_from_ref * ref_frame_->T_f_w_;
 
   // n_meas_表示前一帧所有特征点块(feature patch)像素投影后在cur_frame中的像素个数。
@@ -124,7 +124,7 @@ Matrix<double, 6, 6> SparseImgAlign::getFisherInformation()
 void SparseImgAlign::precomputeReferencePatches()
 {
   const int border = patch_halfsize_+1;
-  //[***step 1***] 获取level_层图像金字塔的图像
+//[***step 1***] 获取level_层图像金字塔的图像
   const cv::Mat& ref_img = ref_frame_->img_pyr_.at(level_);
   const int stride = ref_img.cols; //当前层图像的列数
   const float scale = 1.0f/(1<<level_); //金字塔的尺度, 每层2倍
@@ -156,7 +156,7 @@ void SparseImgAlign::precomputeReferencePatches()
     Matrix<double,2,6> frame_jac;
     Frame::jacobian_xyz2uv(xyz_ref, frame_jac); // 雅克比 du/dp_c * dp_c/dzeta(se3)
 
-////[***step 4***] 利用该层金字塔图像对每个patch中像素进行插值，计算得到图像对像素的导数。
+//[***step 4***] 利用该层金字塔图像对每个patch中像素进行插值，计算得到图像对像素的导数。
     // compute bilateral interpolation weights for reference image
     const float subpix_u_ref = u_ref-u_ref_i;
     const float subpix_v_ref = v_ref-v_ref_i;
