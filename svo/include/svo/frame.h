@@ -37,7 +37,7 @@ typedef list<Feature*> Features;
 typedef vector<cv::Mat> ImgPyr;
 
 /// A frame saves the image, the associated features and the estimated pose.
-class Frame : boost::noncopyable
+class Frame : boost::noncopyable //独一无二
 {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -109,6 +109,7 @@ public:
   inline Vector2d f2c(const Vector3d& f) const { return cam_->world2cam( f ); }
 
   /// Return the pose of the frame in the (w)orld coordinate frame.
+  // 这里为什么求逆，因为根据公式 Rx+t 这个t是在旋转后的坐标系里的，并不是world坐标系下的。！！！
   inline Vector3d pos() const { return T_f_w_.inverse().translation(); }
 
   /// Frame jacobian for projection of 3D point in (f)rame coordinate to

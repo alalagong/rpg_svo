@@ -17,7 +17,9 @@
                 "/home/gong/catkin_ws/src/turtlebot3/turtlebot3_slam/include",
                 "/home/gong/catkin_ws/src/rpg_vikit/vikit_common/include",
                 "/home/gong/catkin_ws/src/rpg_vikit/vikit_ros/include",
-                "/usr/include"
+                "/usr/include",
+                "/usr/include/eigen3",
+                "/home/gong/Library/include"
             ],
             "name": "Linux",
             "intelliSenseMode": "gcc-x64",

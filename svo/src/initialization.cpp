@@ -258,7 +258,7 @@ void computeHomography(
   //[***step 3***] 把特征点三角化计算重投影误差，决定内点还是外点
   // 注意这里的点的顺序变了，先cur后ref，深度是在f_cur中的
   vector<int> outliers;
-  vk::computeInliers(f_cur, f_ ref,
+  vk::computeInliers(f_cur, f_ref,
                      Homography.T_c2_from_c1.rotation_matrix(), Homography.T_c2_from_c1.translation(),
                      reprojection_threshold, focal_length,
                      xyz_in_cur, inliers, outliers);

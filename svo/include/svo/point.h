@@ -85,6 +85,7 @@ public:
   /// Optimize point position through minimizing the reprojection error.
   void optimize(const size_t n_iter);
 
+  // 求得世界坐标对像素的jacobians
   /// Jacobian of point projection on unit plane (focal length = 1) in frame (f).
   inline static void jacobian_xyz2uv(
       const Vector3d& p_in_f,
