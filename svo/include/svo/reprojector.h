@@ -87,7 +87,7 @@ private:
 
   Grid grid_;
   Matcher matcher_;
-  Map& map_;
+  Map& map_; //使用初始化列表来初始化
 
   static bool pointQualityComparator(Candidate& lhs, Candidate& rhs);
   void initializeGrid(vk::AbstractCamera* cam);

@@ -44,6 +44,7 @@ ELSE()
 ENDIF()
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-signed-zeros -fno-math-errno -funroll-loops")
 
+set(Sophus_DIR /home/gong/Library/Sophus-svo/build)
 # Add plain cmake packages 
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen REQUIRED)

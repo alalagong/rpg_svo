@@ -287,6 +287,7 @@ bool Matcher::findEpipolarMatchDirect(
     if(zmssd < zmssd_best) {
       zmssd_best = zmssd;
       uv_best = uv;
+
     }
   }
 

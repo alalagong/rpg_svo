@@ -29,13 +29,15 @@
 #include <sophus/se3.h>
 #include <vikit/performance_monitor.h>
 #include <boost/shared_ptr.hpp>
-#include<Eigen/StdVector>
+#include <Eigen/StdVector>
 #ifndef RPG_SVO_VIKIT_IS_VECTOR_SPECIALIZED //Guard for rpg_vikit
 #define RPG_SVO_VIKIT_IS_VECTOR_SPECIALIZED
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector3d)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector2d)
 #endif
 
+// 不太懂这个宏定义
+// 带形参的宏定义
 #ifdef SVO_USE_ROS
   #include <ros/console.h>
   #define SVO_DEBUG_STREAM(x) ROS_DEBUG_STREAM(x)
@@ -86,6 +88,8 @@ namespace svo
   #define SVO_START_TIMER(name) g_permon->startTimer((name))
   #define SVO_STOP_TIMER(name) g_permon->stopTimer((name))
 #else
+  // 如果不定义，无法保证程序的一致性，运行会报错。
+  // 所以就定义了啥也不干
   #define SVO_LOG(v)
   #define SVO_LOG2(v1, v2)
   #define SVO_LOG3(v1, v2, v3)

@@ -24,17 +24,17 @@
 #include <svo/sparse_img_align.h>
 #include <vikit/performance_monitor.h>
 #include <svo/depth_filter.h>
-#ifdef USE_BUNDLE_ADJUSTMENT
+#ifdef USE_BUNDLE_ADJUSTMENT // 这玩意在哪定义的呢
 #include <svo/bundle_adjustment.h>
 #endif
 
 namespace svo {
-
+// 构造函数
 FrameHandlerMono::FrameHandlerMono(vk::AbstractCamera* cam) :
-  FrameHandlerBase(),
-  cam_(cam),
-  reprojector_(cam_, map_),
-  depth_filter_(NULL)
+  FrameHandlerBase(),  //基类
+  cam_(cam), //相机模型
+  reprojector_(cam_, map_), //重投影类
+  depth_filter_(NULL)  //深度滤波器
 {
   initialize();
 }
