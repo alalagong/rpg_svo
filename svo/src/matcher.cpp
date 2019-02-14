@@ -14,6 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+// comment
+//[ ***step *** ]
+
+/********************************
+ * @ function:  
+ *                            
+ * @ param: 
+ * 
+ * @ note:      
+ *******************************/
+
 #include <cstdlib>
 #include <vikit/abstract_camera.h>
 #include <vikit/vision.h>
@@ -30,6 +41,16 @@ namespace svo {
 
 namespace warp {
 
+/********************************
+ * @ function:  得到已知位姿的两个图像之间仿射变换
+ *                            
+ * @ param:     输入ref的相机参数,像素坐标,归一化坐标,深度,层数
+ *              输入cur的相机参数,ref到cur的变换矩阵
+ *              返回2*2的放射矩阵
+ * 
+ * @ note:      求法很有意思
+ *              !这里的金字塔层数有什么意义??
+ *******************************/
 void getWarpMatrixAffine(
     const vk::AbstractCamera& cam_ref,
     const vk::AbstractCamera& cam_cur,
@@ -41,15 +62,22 @@ void getWarpMatrixAffine(
     Matrix2d& A_cur_ref)
 {
   // Compute affine warp matrix A_ref_cur
-  const int halfpatch_size = 5;
-  const Vector3d xyz_ref(f_ref*depth_ref);
-  Vector3d xyz_du_ref(cam_ref.cam2world(px_ref + Vector2d(halfpatch_size,0)*(1<<level_ref)));
+  const int halfpatch_size = 5; // 考虑边界8+2的一半
+  const Vector3d xyz_ref(f_ref*depth_ref); // 点在ref下的3D坐标
+  // 图像上根据金字塔层数对应的patch大小,得到patch的右上角坐标
+  Vector3d xyz_du_ref(cam_ref.cam2world(px_ref + Vector2d(halfpatch_size,0)*(1<<level_ref))); 
+  // 图像上根据金字塔层数对应的patch大小,得到patch的左下角坐标
   Vector3d xyz_dv_ref(cam_ref.cam2world(px_ref + Vector2d(0,halfpatch_size)*(1<<level_ref)));
+  // 根据该点的深度得到右上角,左下角的3D坐标(一种近似?)
   xyz_du_ref *= xyz_ref[2]/xyz_du_ref[2];
   xyz_dv_ref *= xyz_ref[2]/xyz_dv_ref[2];
+  // 将这三点变换到cur下的图像坐标
   const Vector2d px_cur(cam_cur.world2cam(T_cur_ref*(xyz_ref)));
   const Vector2d px_du(cam_cur.world2cam(T_cur_ref*(xyz_du_ref)));
   const Vector2d px_dv(cam_cur.world2cam(T_cur_ref*(xyz_dv_ref)));
+  //! 这是怎么计算出来的A矩阵呢??
+  //* 把原来的当做轴, 变换得到对应的轴就是两列(相当于原来的是(1,0)和(0,1))
+  //* 参见https://images2015.cnblogs.com/blog/120296/201602/120296-20160222070732869-1123994329.png 后几个图 
   A_cur_ref.col(0) = (px_du - px_cur)/halfpatch_size;
   A_cur_ref.col(1) = (px_dv - px_cur)/halfpatch_size;
 }
@@ -61,10 +89,11 @@ int getBestSearchLevel(
   // Compute patch level in other image
   int search_level = 0;
   double D = A_cur_ref.determinant();
+  //* 直到A的行列式值小于3, 为什么这样好呢?? 尺度接近1比较好??
   while(D > 3.0 && search_level < max_level)
   {
     search_level += 1;
-    D *= 0.25;
+    D *= 0.25; //每增加一层, 行列式值就除以4
   }
   return search_level;
 }

@@ -90,7 +90,7 @@ public:
       epi_search_edgelet_max_angle(0.7)
     {}
   } options_;
-
+  //* 指定最小对齐字节数，应该是为了使用SSE2吧。
   uint8_t patch_[patch_size_*patch_size_] __attribute__ ((aligned (16)));
   uint8_t patch_with_border_[(patch_size_+2)*(patch_size_+2)] __attribute__ ((aligned (16)));
   Matrix2d A_cur_ref_;          //!< affine warp matrix

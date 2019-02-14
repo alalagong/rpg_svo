@@ -84,11 +84,12 @@ void Reprojector::reprojectMap(
     FramePtr frame,
     std::vector< std::pair<FramePtr,std::size_t> >& overlap_kfs)
 {
-//[***step 1***] 重置
+//[ ***step 1*** ] 重置
+
   resetGrid();
   // Identify those Keyframes which share a common field of view.
   SVO_START_TIMER("reproject_kfs");
-//[***step 2***] 找到有重叠的关键帧，返回共享指针和距离
+//[ ***step 2*** ] 找到有重叠的关键帧，返回共享指针和距离
   list< pair<FramePtr,double> > close_kfs; 
   map_.getCloseKeyframes(frame, close_kfs);
 //[***step 3***] 根据距离排序（这在getclosestkeyframe函数不是排过）
