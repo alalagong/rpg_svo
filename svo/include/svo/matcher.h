@@ -69,7 +69,7 @@ public:
   static const int halfpatch_size_ = 4;
   static const int patch_size_ = 8;
 
-  typedef vk::patch_score::ZMSSD<halfpatch_size_> PatchScore;
+  typedef vk::patch_score::ZMSSD<halfpatch_size_> PatchScore; // patch的ZMSSD得分
 
   struct Options
   {
@@ -91,16 +91,16 @@ public:
     {}
   } options_;
   //* 指定最小对齐字节数，应该是为了使用SSE2吧。
-  uint8_t patch_[patch_size_*patch_size_] __attribute__ ((aligned (16)));
-  uint8_t patch_with_border_[(patch_size_+2)*(patch_size_+2)] __attribute__ ((aligned (16)));
+  uint8_t patch_[patch_size_*patch_size_] __attribute__ ((aligned (16))); // patch数组
+  uint8_t patch_with_border_[(patch_size_+2)*(patch_size_+2)] __attribute__ ((aligned (16))); // patch加上边界下的指针
   Matrix2d A_cur_ref_;          //!< affine warp matrix
-  Vector2d epi_dir_;
+  Vector2d epi_dir_;            //!< 极线段向量
   double epi_length_;           //!< length of epipolar line segment in pixels (only used for epipolar search)
   double h_inv_;                //!< hessian of 1d image alignment along epipolar line
-  int search_level_;
+  int search_level_;            //!< 最佳搜索金字塔层 
   bool reject_;
-  Feature* ref_ftr_;
-  Vector2d px_cur_;
+  Feature* ref_ftr_;            //!< 待进行块匹配的特征
+  Vector2d px_cur_;             //!< 当前帧的匹配特征位置
 
   Matcher() = default;
   ~Matcher() = default;
