@@ -68,8 +68,8 @@ protected:
   static const int border_ = 8; //!< no feature should be within 8px of border.
   const int cell_size_;
   const int n_pyr_levels_;
-  const int grid_n_cols_;
-  const int grid_n_rows_;
+  const int grid_n_cols_;  //!< grid 的行数
+  const int grid_n_rows_; //!< grid 的列数
   vector<bool> grid_occupancy_;
 
   void resetGrid();
@@ -80,6 +80,7 @@ protected:
     return (scale*y)/cell_size_*grid_n_cols_ + (scale*x)/cell_size_;
   }
 };
+//* 基类指针
 typedef boost::shared_ptr<AbstractDetector> DetectorPtr;
 
 /// FAST detector by Edward Rosten.

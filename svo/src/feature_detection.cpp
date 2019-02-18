@@ -39,6 +39,7 @@ void AbstractDetector::resetGrid()
   std::fill(grid_occupancy_.begin(), grid_occupancy_.end(), false);
 }
 
+//* 将特征fts所在网格设置为occupancy
 void AbstractDetector::setExistingFeatures(const Features& fts)
 {
   std::for_each(fts.begin(), fts.end(), [&](Feature* i){
@@ -69,11 +70,14 @@ void FastDetector::detect(
     const double detection_threshold,
     Features& fts)
 {
+  //? 每个grid里面一个特征点? 
   Corners corners(grid_n_cols_*grid_n_rows_, Corner(0,0,detection_threshold,0,0.0f));
+  //* 对每一金字塔层进行循环 
   for(int L=0; L<n_pyr_levels_; ++L)
   {
     const int scale = (1<<L);
     vector<fast::fast_xy> fast_corners;
+    //* 检测fast角点 
 #if __SSE2__
       fast::fast_corner_detect_10_sse2(
           (fast::fast_byte*) img_pyr[L].data, img_pyr[L].cols,
@@ -88,16 +92,20 @@ void FastDetector::detect(
           img_pyr[L].rows, img_pyr[L].cols, 20, fast_corners);
 #endif
     vector<int> scores, nm_corners;
+    //* 计算fast角点的得分 
     fast::fast_corner_score_10((fast::fast_byte*) img_pyr[L].data, img_pyr[L].cols, fast_corners, 20, scores);
+    //* 在3*3区域内取最大值
     fast::fast_nonmax_3x3(fast_corners, scores, nm_corners);
 
     for(auto it=nm_corners.begin(), ite=nm_corners.end(); it!=ite; ++it)
     {
-      fast::fast_xy& xy = fast_corners.at(*it);
+      fast::fast_xy& xy = fast_corners.at(*it); // 取最大值的点
       const int k = static_cast<int>((xy.y*scale)/cell_size_)*grid_n_cols_
-                  + static_cast<int>((xy.x*scale)/cell_size_);
-      if(grid_occupancy_[k])
+                  + static_cast<int>((xy.x*scale)/cell_size_); // 计算在第几个网格内
+      if(grid_occupancy_[k]) // 如果该网格已经有特征点则跳过
         continue;
+      //* 计算 shiTomasiScore 得分, 取最大的放在grid里
+      //* 这个grid里的特征点可能来自不同的金字塔层里 
       const float score = vk::shiTomasiScore(img_pyr[L], xy.x, xy.y);
       if(score > corners.at(k).score)
         corners.at(k) = Corner(xy.x*scale, xy.y*scale, score, L, 0.0f);
@@ -105,8 +113,10 @@ void FastDetector::detect(
   }
 
   // Create feature for every corner that has high enough corner score
+  //* 每个grid里面都只有一个特征点? 
   std::for_each(corners.begin(), corners.end(), [&](Corner& c) {
     if(c.score > detection_threshold)
+    //* 大于阈值则作为feature加入
       fts.push_back(new Feature(frame, Vector2d(c.x, c.y), c.level));
   });
 

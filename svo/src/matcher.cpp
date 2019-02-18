@@ -213,7 +213,8 @@ bool Matcher::findMatchDirect(
 //[ ***step 3*** ] 根据ref_ftr_周围的8*8 patch求得ref到cur之间的1D仿射矩阵
   warp::getWarpMatrixAffine(
       *ref_ftr_->frame->cam_, *cur_frame.cam_, ref_ftr_->px, ref_ftr_->f,
-      //! 深度为什么这么算???
+      //! 深度为什么这么算??? 
+      //* 这里深度本就是不准确的,为了求深度才进行的匹配
       (ref_ftr_->frame->pos() - pt.pos_).norm(), 
       cur_frame.T_f_w_ * ref_ftr_->frame->T_f_w_.inverse(), ref_ftr_->level, A_cur_ref_);
 //[ ***step 4*** ] 找到cur_frame最合适的搜索的金字塔层
