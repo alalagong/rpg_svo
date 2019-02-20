@@ -27,6 +27,22 @@ namespace feature_alignment {
 
 #define SUBPIX_VERBOSE 0
 
+/********************************
+ * @ function:  使用逆向组合法, 进行1维特征对齐
+ * 
+ * @ param:     const cv::Mat& cur_img              cur_image在searchlevel的金字塔图像
+ *              const Vector2f& dir                 patch搜索移动的方向: 极线方向 or 梯度方向 
+ *              uint8_t* ref_patch_with_border      从ref变换到cur上的参考patch_border(不准确的, 带1个像素大小的边界)!!
+ *              uint8_t* ref_patch                  从ref变换到cur上的参考patch(不准确的)
+ *              const int n_iter                    对齐算法最大迭代次数
+ *              Vector2d& cur_px_estimate           当前的cur上特征点位置估计值(待优化量)
+ *              double& h_inv                       沿着极线的(搜索方向)的 Hessian
+ * 
+ * @ note:      优化的方程: I(x+u) = T(x) + i
+ *              逆向组合: min Sum_x[ T(x+△u) + △i - I(x+u) + i]^2  
+ *              优化的变量为: l ---- 像素位置增量在搜索方向上的步长 u = x0 + v*l (x0 初始偏差; v 搜索方向; u 像素位置增量)
+ *                            i ---- 亮度偏差
+ *******************************/
 bool align1D(
     const cv::Mat& cur_img,
     const Vector2f& dir,                  // direction in which the patch is allowed to move
@@ -42,48 +58,57 @@ bool align1D(
   bool converged=false;
 
   // compute derivative of template and prepare inverse compositional
-  float __attribute__((__aligned__(16))) ref_patch_dv[patch_area];
-  Matrix2f H; H.setZero();
+  float __attribute__((__aligned__(16))) ref_patch_dv[patch_area]; //存ref_patch的导数, 对应模板T(16位对齐)
+  Matrix2f H; H.setZero(); //Hessian矩阵
 
   // compute gradient and hessian
-  const int ref_step = patch_size+2;
-  float* it_dv = ref_patch_dv;
-  for(int y=0; y<patch_size; ++y)
+  const int ref_step = patch_size+2; // 图像求导需要带有border的patch
+  float* it_dv = ref_patch_dv; // 图像导数的指针
+//[ ***step 1*** ] 计算ref图像的导数和Hessian矩阵
+  for(int y=0; y<patch_size; ++y) //行循环
   {
-    uint8_t* it = ref_patch_with_border + (y+1)*ref_step + 1;
-    for(int x=0; x<patch_size; ++x, ++it, ++it_dv)
+    uint8_t* it = ref_patch_with_border + (y+1)*ref_step + 1; // 除去border的patch指针
+    for(int x=0; x<patch_size; ++x, ++it, ++it_dv) // 列循环
     {
-      Vector2f J;
-      J[0] = 0.5*(dir[0]*(it[1] - it[-1]) + dir[1]*(it[ref_step] - it[-ref_step]));
-      J[1] = 1;
-      *it_dv = J[0];
-      H += J*J.transpose();
+      Vector2f J; // 导数
+      //! dT'/dW*dW/du*du/dl = ▽T * v = (dx dy) * v
+      //* 这里的 T(ref) 是已经变换到 I(cur) 坐标系下了
+      J[0] = 0.5*(dir[0]*(it[1] - it[-1]) + dir[1]*(it[ref_step] - it[-ref_step])); // 沿着dir方向的导数
+      //! dT'/di = 1
+      J[1] = 1; // 亮度增量导数
+      *it_dv = J[0]; // 每个像素的导数
+      H += J*J.transpose(); // Hessian矩阵, (这里用的列向量)
     }
   }
-  h_inv = 1.0/H(0,0)*patch_size*patch_size;
+  //* 图像导数平方和取平均的 倒数
+  h_inv = 1.0/H(0,0)*patch_size*patch_size; //? 这是干啥的???
   Matrix2f Hinv = H.inverse();
-  float mean_diff = 0;
+  float mean_diff = 0; // 亮度的平均偏差
 
   // Compute pixel location in new image:
-  float u = cur_px_estimate.x();
+  float u = cur_px_estimate.x(); // cur上特征位置
   float v = cur_px_estimate.y();
 
   // termination condition
-  const float min_update_squared = 0.03*0.03;
-  const int cur_step = cur_img.step.p[0];
+
+  const float min_update_squared = 0.03*0.03; // 收敛条件
+  const int cur_step = cur_img.step.p[0]; // 就是step[0]
   float chi2 = 0;
-  Vector2f update; update.setZero();
+  Vector2f update; update.setZero(); // 状态增量
+   
   for(int iter = 0; iter<n_iter; ++iter)
   {
     int u_r = floor(u);
     int v_r = floor(v);
+    //* 在边缘则跳过
     if(u_r < halfpatch_size_ || v_r < halfpatch_size_ || u_r >= cur_img.cols-halfpatch_size_ || v_r >= cur_img.rows-halfpatch_size_)
       break;
-
+    // 不是数了?
     if(isnan(u) || isnan(v)) // TODO very rarely this can happen, maybe H is singular? should not be at corner.. check
       return false;
 
     // compute interpolation weights
+    //* 双线性插值
     float subpix_x = u-u_r;
     float subpix_y = v-v_r;
     float wTL = (1.0-subpix_x)*(1.0-subpix_y);
@@ -92,20 +117,23 @@ bool align1D(
     float wBR = subpix_x * subpix_y;
 
     // loop through search_patch, interpolate
-    uint8_t* it_ref = ref_patch;
-    float* it_ref_dv = ref_patch_dv;
+    uint8_t* it_ref = ref_patch; // ref patch指针
+    float* it_ref_dv = ref_patch_dv; // ref patch导数指针
     float new_chi2 = 0.0;
     Vector2f Jres; Jres.setZero();
-    for(int y=0; y<patch_size; ++y)
+    for(int y=0; y<patch_size; ++y) //cur 上patch的行循环
     {
-      uint8_t* it = (uint8_t*) cur_img.data + (v_r+y-halfpatch_size_)*cur_step + u_r-halfpatch_size_;
+//[ ***step 2*** ] 计算残差和 J*res
+      uint8_t* it = (uint8_t*) cur_img.data + (v_r+y-halfpatch_size_)*cur_step + u_r-halfpatch_size_; // cur 的patch像素指针
       for(int x=0; x<patch_size; ++x, ++it, ++it_ref, ++it_ref_dv)
       {
-        float search_pixel = wTL*it[0] + wTR*it[1] + wBL*it[cur_step] + wBR*it[cur_step+1];
-        float res = search_pixel - *it_ref + mean_diff;
-        Jres[0] -= res*(*it_ref_dv);
-        Jres[1] -= res;
-        new_chi2 += res*res;
+        float search_pixel = wTL*it[0] + wTR*it[1] + wBL*it[cur_step] + wBR*it[cur_step+1]; // cur上插值得到
+        //! 计算残差 res = T(x) - I(x+x0+v*l) - i
+        float res = search_pixel - *it_ref + mean_diff;  // 像素的差
+        //! Sum_x[▽T*v 1] * res
+        Jres[0] -= res*(*it_ref_dv); // -J*(I-T)
+        Jres[1] -= res; 
+        new_chi2 += res*res; // 卡方
       }
     }
 
@@ -114,14 +142,20 @@ bool align1D(
 #if SUBPIX_VERBOSE
       cout << "error increased." << endl;
 #endif
+      //* 残差增加就减下去 
       u -= update[0];
       v -= update[1];
       break;
     }
 
     chi2 = new_chi2;
-    update = Hinv * Jres;
-    u += update[0]*dir[0];
+//[ ***step 3*** ] 计算状态增量
+    //! 求得增量 △p = H^-1 * Jres
+    update = Hinv * Jres; //计算增量
+    //! 更新 p <== p - △p
+//[ ***step 4*** ] 对位置在搜索方向进行更新, 对亮度误差进行更新
+    //* 求Jres时是负的, 所以这里还是加法
+    u += update[0]*dir[0]; 
     v += update[0]*dir[1];
     mean_diff += update[1];
 
@@ -131,7 +165,7 @@ bool align1D(
          << "\t update = " << update[0] << ", " << update[1]
          << "\t new chi2 = " << new_chi2 << endl;
 #endif
-
+//[ ***step 5*** ] 若收敛则返回
     if(update[0]*update[0]+update[1]*update[1] < min_update_squared)
     {
 #if SUBPIX_VERBOSE
@@ -146,6 +180,21 @@ bool align1D(
   return converged;
 }
 
+
+/********************************
+ * @ function:    使用逆向组合法, 进行2D图像对齐
+ * 
+ * @ param:       const cv::Mat& cur_img            cur_image在searchlevel的金字塔图像
+ *                uint8_t* ref_patch_with_border    从ref变换到cur上的参考patch_border(不准确的, 带1个大的边界)!!
+ *                uint8_t* ref_patch                从ref变换到cur上的参考patch(不准确的)
+ *                const int n_iter                  最大迭代次数
+ *                Vector2d& cur_px_estimate         当前估计的cur上特征像素位置
+ *                bool no_simd
+ * 
+ * @ note:        优化方程: p = min Sum_x[ T(x+△x,y+△y) + △i - I(x,y) + i]^2
+ *                优化变量: p = [x, y, i]
+ *                其他的和1D情况相同
+ *******************************/
 bool align2D(
     const cv::Mat& cur_img,
     uint8_t* ref_patch_with_border,
@@ -165,6 +214,7 @@ bool align2D(
   bool converged=false;
 
   // compute derivative of template and prepare inverse compositional
+  //* 模板图像对像素 x,y 坐标进行求导
   float __attribute__((__aligned__(16))) ref_patch_dx[patch_area_];
   float __attribute__((__aligned__(16))) ref_patch_dy[patch_area_];
   Matrix3f H; H.setZero();
@@ -173,18 +223,18 @@ bool align2D(
   const int ref_step = patch_size_+2;
   float* it_dx = ref_patch_dx;
   float* it_dy = ref_patch_dy;
-  for(int y=0; y<patch_size_; ++y)
+  for(int y=0; y<patch_size_; ++y) // 行循环
   {
-    uint8_t* it = ref_patch_with_border + (y+1)*ref_step + 1;
+    uint8_t* it = ref_patch_with_border + (y+1)*ref_step + 1; // ref图像去掉border部分的行首指针
     for(int x=0; x<patch_size_; ++x, ++it, ++it_dx, ++it_dy)
     {
       Vector3f J;
-      J[0] = 0.5 * (it[1] - it[-1]);
-      J[1] = 0.5 * (it[ref_step] - it[-ref_step]);
-      J[2] = 1;
+      J[0] = 0.5 * (it[1] - it[-1]); // x方向导数
+      J[1] = 0.5 * (it[ref_step] - it[-ref_step]); // y方向导数
+      J[2] = 1; // 亮度误差导数
       *it_dx = J[0];
       *it_dy = J[1];
-      H += J*J.transpose();
+      H += J*J.transpose(); // Hessian矩阵求和
     }
   }
   Matrix3f Hinv = H.inverse();
@@ -225,10 +275,10 @@ bool align2D(
     Vector3f Jres; Jres.setZero();
     for(int y=0; y<patch_size_; ++y)
     {
-      uint8_t* it = (uint8_t*) cur_img.data + (v_r+y-halfpatch_size_)*cur_step + u_r-halfpatch_size_;
+      uint8_t* it = (uint8_t*) cur_img.data + (v_r+y-halfpatch_size_)*cur_step + u_r-halfpatch_size_; // cur图像的patch行首指针
       for(int x=0; x<patch_size_; ++x, ++it, ++it_ref, ++it_ref_dx, ++it_ref_dy)
       {
-        float search_pixel = wTL*it[0] + wTR*it[1] + wBL*it[cur_step] + wBR*it[cur_step+1];
+        float search_pixel = wTL*it[0] + wTR*it[1] + wBL*it[cur_step] + wBR*it[cur_step+1]; // cur图像线性插值
         float res = search_pixel - *it_ref + mean_diff;
         Jres[0] -= res*(*it_ref_dx);
         Jres[1] -= res*(*it_ref_dy);

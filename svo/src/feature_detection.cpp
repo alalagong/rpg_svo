@@ -102,6 +102,7 @@ void FastDetector::detect(
       fast::fast_xy& xy = fast_corners.at(*it); // 取最大值的点
       const int k = static_cast<int>((xy.y*scale)/cell_size_)*grid_n_cols_
                   + static_cast<int>((xy.x*scale)/cell_size_); // 计算在第几个网格内
+      //? 这个占据是什么意思呢？？？ 
       if(grid_occupancy_[k]) // 如果该网格已经有特征点则跳过
         continue;
       //* 计算 shiTomasiScore 得分, 取最大的放在grid里

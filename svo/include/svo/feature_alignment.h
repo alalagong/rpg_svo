@@ -24,6 +24,7 @@ namespace svo {
 /// Subpixel refinement of a reference feature patch with the current image.
 /// Implements the inverse-compositional approach (see "Lucas-Kanade 20 Years on"
 /// paper by Baker.
+
 namespace feature_alignment {
 
 bool align1D(
