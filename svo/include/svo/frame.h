@@ -122,7 +122,7 @@ public:
     const double y = xyz_in_f[1];
     const double z_inv = 1./xyz_in_f[2];
     const double z_inv_2 = z_inv*z_inv;
-
+    //! 推导得会啊
     J(0,0) = -z_inv;              // -1/z
     J(0,1) = 0.0;                 // 0
     J(0,2) = x*z_inv_2;           // x/z^2
