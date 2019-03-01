@@ -68,8 +68,8 @@ void optimizeGaussNewton(
   if(errors.empty())
     return;
 //[ ***step 2*** ] 根据总errors计算中位数绝对误差, 误差的尺度, 确定误差整体是比较大还是比较小
-  vk::robust_cost::MADScaleEstimator scale_estimator; // 中位数绝对偏差
-  estimated_scale = scale_estimator.compute(errors); //? 估计的误差尺度 ??? 什么操作?
+  vk::robust_cost::MADScaleEstimator scale_estimator; // 中位数绝对偏差估计
+  estimated_scale = scale_estimator.compute(errors); // 返回估计的标准差
 
   num_obs = errors.size();
   chi2_vec_init.reserve(num_obs); //初始卡方误差
@@ -82,6 +82,7 @@ void optimizeGaussNewton(
     // 第五次迭代会重新改变一次scale ??? 什么操作
     if(iter == 5)
     //* 之前求得J里面不包括fx, 因此阈值也要除掉fx 
+    //* 越往后由于迭代, 误差的标准差会越小(这是个估计值把)
     //? 这个尺度有什么作用 , 师兄注释说越往后误差可靠性越高?
       scale = 0.85/frame->cam_->errorMultiplier2();// fabs(fx_)
 
@@ -112,6 +113,8 @@ void optimizeGaussNewton(
       //! J*∑^(1/2)
       J *= sqrt_inv_cov;
       //* robust处理
+      //! x_square <= b_square ---> const float tmp = 1.0f - x_square / b_square; return tmp * tmp;
+      //! x_square > b_square  ---> return 0;
       double weight = weight_function.value(e.norm()/scale); // 权重函数
       //! A=J^T*∑^(-1)*J
       A.noalias() += J.transpose()*J*weight;
