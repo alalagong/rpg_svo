@@ -385,7 +385,7 @@ void DepthFilter::updateSeed(const float x, const float tau2, Seed* seed)
   float f = C1*(seed->a+1.)/(seed->a+seed->b+1.) + C2*seed->a/(seed->a+seed->b+1.);
   float e = C1*(seed->a+1.)*(seed->a+2.)/((seed->a+seed->b+1.)*(seed->a+seed->b+2.))
           + C2*seed->a*(seed->a+1.0f)/((seed->a+seed->b+1.0f)*(seed->a+seed->b+2.0f));
-  //
+  //* 更新参数
   // update parameters
   float mu_new = C1*m+C2*seed->mu;
   seed->sigma2 = C1*(s2 + m*m) + C2*(seed->sigma2 + seed->mu*seed->mu) - mu_new*mu_new;
