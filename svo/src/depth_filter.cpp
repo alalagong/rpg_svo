@@ -177,7 +177,7 @@ void DepthFilter::reset()
     lock_t lock(seeds_mut_);
     seeds_.clear();
   }
-  //bug: 应该给frame_queue_mut_上锁
+
   lock_t lock(frame_queue_mut_);  //! 更改by gong
   // 清空frame队列
   while(!frame_queue_.empty())

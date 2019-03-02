@@ -144,16 +144,16 @@ void Frame::checkKeyPoints(Feature* ftr)
   {
     if(key_pts_[2] == NULL)
       key_pts_[2] = ftr;
-    else if((ftr->px[0]-cu) * (ftr->px[1]-cv)
-    // else if((ftr->px[0]-cu) * (cv-ftr->px[1])//!更改by gong
-          > (key_pts_[2]->px[0]-cu) * (key_pts_[2]->px[1]-cv))
-          // > (key_pts_[2]->px[0]-cu) * (cv-key_pts_[2]->px[1]))//!更改by gong
+    // else if((ftr->px[0]-cu) * (ftr->px[1]-cv)
+    else if((ftr->px[0]-cu) * (cv-ftr->px[1])//!更改by gong
+          // > (key_pts_[2]->px[0]-cu) * (key_pts_[2]->px[1]-cv))
+          > (key_pts_[2]->px[0]-cu) * (cv-key_pts_[2]->px[1]))//!更改by gong
       key_pts_[2] = ftr;
   }
 //[***step 4***] 挑选左上角
   // bug：应该与cu比较
-  if(ftr->px[0] < cv && ftr->px[1] < cv)
-  // if(ftr->px[0] < cu && ftr->px[1] < cv) //!更改by gong
+  // if(ftr->px[0] < cv && ftr->px[1] < cv)
+  if(ftr->px[0] < cu && ftr->px[1] < cv) //!更改by gong
   {
     if(key_pts_[3] == NULL)
       key_pts_[3] = ftr;
@@ -164,15 +164,15 @@ void Frame::checkKeyPoints(Feature* ftr)
 //[***step 5***] 挑选左下角
   // bug1: 应该与cu比较
   // bug2：(ftr->px[0]-cu)会小于零
-  // if(ftr->px[0] < cu && ftr->px[1] >= cv)  //!更改by gong
-  if(ftr->px[0] < cv && ftr->px[1] >= cv)
+  if(ftr->px[0] < cu && ftr->px[1] >= cv)  //!更改by gong
+  // if(ftr->px[0] < cv && ftr->px[1] >= cv)
   {
     if(key_pts_[4] == NULL)
       key_pts_[4] = ftr;
-    else if((ftr->px[0]-cu) * (ftr->px[1]-cv)
-          > (key_pts_[4]->px[0]-cu) * (key_pts_[4]->px[1]-cv))
-    // else if(cu-(ftr->px[0]) * (ftr->px[1]-cv) //!更改by gong
-    //       > (cu-key_pts_[4]->px[0]) * (key_pts_[4]->px[1]-cv))      
+    // else if((ftr->px[0]-cu) * (ftr->px[1]-cv)
+          // > (key_pts_[4]->px[0]-cu) * (key_pts_[4]->px[1]-cv))
+    else if(cu-(ftr->px[0]) * (ftr->px[1]-cv) //!更改by gong
+          > (cu-key_pts_[4]->px[0]) * (key_pts_[4]->px[1]-cv))      
       key_pts_[4] = ftr;
   }
 }
