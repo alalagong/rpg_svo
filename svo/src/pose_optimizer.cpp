@@ -115,6 +115,7 @@ void optimizeGaussNewton(
       //* robust处理
       //! x_square <= b_square ---> const float tmp = 1.0f - x_square / b_square; return tmp * tmp;
       //! x_square > b_square  ---> return 0;
+      //* 权重可以使得, 大的误差系数是0, 小的误差权重大一些, 大的误差权重小一些. 去除外点更加鲁棒
       double weight = weight_function.value(e.norm()/scale); // 权重函数
       //! A=J^T*∑^(-1)*J
       A.noalias() += J.transpose()*J*weight;

@@ -27,6 +27,7 @@
 
 namespace svo {
 
+// 前置声明，后面类中用到了
 class Frame;
 class Feature;
 class Point;
@@ -36,8 +37,8 @@ struct Seed
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  static int batch_counter;
-  static int seed_counter;
+  static int batch_counter;    //!< 每初始化一次(增加关键帧)就一个batch
+  static int seed_counter;     //!< 总的种子点数量
   int batch_id;                //!< Batch id is the id of the keyframe for which the seed was created.
   int id;                      //!< Seed ID, only used for visualization.
   Feature* ftr;                //!< Feature in the keyframe for which the depth should be computed.
@@ -47,7 +48,7 @@ struct Seed
   float z_range;               //!< Max range of the possible depth.
   float sigma2;                //!< Variance of normal distribution.
   Matrix2d patch_cov;          //!< Patch covariance in reference image.
-  Seed(Feature* ftr, float depth_mean, float depth_min);
+  Seed(Feature* ftr, float depth_mean, float depth_min); //* 每次构造就增加seed_counter
 };
 
 /// Depth filter implements the Bayesian Update proposed in:
@@ -61,7 +62,8 @@ class DepthFilter
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  typedef boost::unique_lock<boost::mutex> lock_t;
+  typedef boost::unique_lock<boost::mutex> lock_t; // 线程锁
+  //? 这个是啥???
   typedef boost::function<void ( Point*, double )> callback_t;
 
   /// Depth-filter config parameters
@@ -78,7 +80,7 @@ public:
     : check_ftr_angle(false),
       epi_search_1d(false),
       verbose(false),
-      use_photometric_disparity_error(false),
+      use_photometric_disparity_error(false), //? 这个还挺有意思
       max_n_kfs(3),
       sigma_i_sq(5e-4),
       seed_convergence_sigma2_thresh(200.0)
@@ -116,6 +118,7 @@ public:
   /// Can be used to compute the Next-Best-View in parallel.
   /// IMPORTANT! Make sure you hold a valid reference counting pointer to frame
   /// so it is not being deleted while you use it.
+  //? 什么作用???
   void getSeedsCopy(const FramePtr& frame, std::list<Seed>& seeds);
 
   /// Return a reference to the seeds. This is NOT THREAD SAFE!
@@ -135,18 +138,19 @@ public:
       const double px_error_angle);
 
 protected:
-  feature_detection::DetectorPtr feature_detector_;
-  callback_t seed_converged_cb_;
-  std::list<Seed> seeds_;
-  boost::mutex seeds_mut_;
+  feature_detection::DetectorPtr feature_detector_; //!< 检测特征点 
+  callback_t seed_converged_cb_;        //!< 
+  std::list<Seed> seeds_;               //!< 种子点的列表
+  boost::mutex seeds_mut_;              //!< 更新种子点的线程锁
   bool seeds_updating_halt_;            //!< Set this value to true when seeds updating should be interrupted.
-  boost::thread* thread_;
-  std::queue<FramePtr> frame_queue_;
-  boost::mutex frame_queue_mut_;
-  boost::condition_variable frame_queue_cond_;
+  boost::thread* thread_;               //!< 子线程
+  std::queue<FramePtr> frame_queue_;    //!< frame 的队列
+  boost::mutex frame_queue_mut_;        //!< 增加 frame 到队列的线程锁
+  boost::condition_variable frame_queue_cond_; //!< 条件变量
   FramePtr new_keyframe_;               //!< Next keyframe to extract new seeds.
   bool new_keyframe_set_;               //!< Do we have a new keyframe to process?.
   double new_keyframe_min_depth_;       //!< Minimum depth in the new keyframe. Used for range in new seeds.
+  // ? 这是最大值???
   double new_keyframe_mean_depth_;      //!< Maximum depth in the new keyframe. Used for range in new seeds.
   vk::PerformanceMonitor permon_;       //!< Separate performance monitor since the DepthFilter runs in a parallel thread.
   Matcher matcher_;
