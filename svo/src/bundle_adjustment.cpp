@@ -461,6 +461,18 @@ createG2oPoint(Vector3d pos,
   return v;
 }
 
+/********************************
+ * @ function:  构建G2O优化的边
+ * 
+ * @ param:     g2oFrameSE3* v_frame    优化的相机位姿
+ *              g2oPoint* v_point       优化的点
+ *              const Vector2d& f_up    相机观测的初值
+ *              bool robust_kernel      核函数
+ *              double huber_width      核函数宽度
+ *              double weight           权重
+ * 
+ * @ note:
+ *******************************/
 g2oEdgeSE3*
 createG2oEdgeSE3( g2oFrameSE3* v_frame,
                   g2oPoint* v_point,
@@ -473,10 +485,11 @@ createG2oEdgeSE3( g2oFrameSE3* v_frame,
   e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_point));
   e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_frame));
   e->setMeasurement(f_up);
-  e->information() = weight * Eigen::Matrix2d::Identity(2,2);
+  e->information() = weight * Eigen::Matrix2d::Identity(2,2); // 信息矩阵, 加权最小二乘
   g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber();      // TODO: memory leak
   rk->setDelta(huber_width);
   e->setRobustKernel(rk);
+  //? 这是干嘛的???
   e->setParameterId(0, 0); //old: e->setId(v_point->id());
   return e;
 }
