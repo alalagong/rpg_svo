@@ -108,7 +108,7 @@ void Map::removePtFrameRef(Frame* frame, Feature* ftr)
   }
 //[***step 3***] 切断point与feature之间的联系，这里和step1不一样，互相指
   pt->deleteFrameRef(frame);  // Remove reference from map_point
-//[***step 4***] 若ftr时keypoint则删除，keypoint要和3d point相连的
+//[***step 4***] 若ftr是keypoint则删除，keypoint要和3d point相连的
   frame->removeKeyPoint(ftr); // Check if mp was keyMp in keyframe
 }
 

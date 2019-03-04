@@ -28,9 +28,9 @@ class VertexSBAPointXYZ;
 
 namespace svo {
 
-typedef g2o::EdgeProjectXYZ2UV g2oEdgeSE3;
-typedef g2o::VertexSE3Expmap g2oFrameSE3;
-typedef g2o::VertexSBAPointXYZ g2oPoint;
+typedef g2o::EdgeProjectXYZ2UV g2oEdgeSE3; // 边
+typedef g2o::VertexSE3Expmap g2oFrameSE3;  // 顶点
+typedef g2o::VertexSBAPointXYZ g2oPoint;   // 顶点
 
 class Frame;
 class Point;
