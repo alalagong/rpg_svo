@@ -87,7 +87,7 @@ void DepthFilter::addFrame(FramePtr frame)
 {
   if(thread_ != NULL)
   {
-    {
+  {
       lock_t lock(frame_queue_mut_);
       if(frame_queue_.size() > 2)
         frame_queue_.pop();  // 大于两个则弹出,队首
@@ -97,7 +97,7 @@ void DepthFilter::addFrame(FramePtr frame)
     frame_queue_cond_.notify_one(); // 启用, 其 wait 的线程
   }
   else
-    updateSeeds(frame); //? thread为空为啥调用它???
+    updateSeeds(frame); //! 不使用多线程时候的更新
 }
 
 //* 增加一新的关键帧
@@ -114,7 +114,7 @@ void DepthFilter::addKeyframe(FramePtr frame, double depth_mean, double depth_mi
     frame_queue_cond_.notify_one();  // 唤醒挂起线程
   }
   else
-    initializeSeeds(frame);  //? NUll了还初始化??? 
+    initializeSeeds(frame);  //! 不使用多线程
 }
 
 /********************************
@@ -311,6 +311,7 @@ void DepthFilter::updateSeeds(FramePtr frame)
       assert(it->ftr->point == NULL); // TODO this should not happen anymore
       Vector3d xyz_world(it->ftr->frame->T_f_w_.inverse() * (it->ftr->f * (1.0/it->mu)));
       Point* point = new Point(xyz_world, it->ftr);
+      //! 在这之前 feature 都没有指向的point, 只有frame.
       it->ftr->point = point;
 
       /* FIXME it is not threadsafe to add a feature to the frame here.
@@ -324,7 +325,7 @@ void DepthFilter::updateSeeds(FramePtr frame)
       }
       else
       */
-    //* 把新的3D点, 和方差, 传给回调函数???  
+    //* 把新的3D点, 和方差, 传给回调函数, 赋值给map->point_candidates
       {
         seed_converged_cb_(point, it->sigma2); // put in candidate list
       }
@@ -348,7 +349,7 @@ void DepthFilter::clearFrameQueue()
     frame_queue_.pop();
 }
 
-//* 从种子点中找出在 frame 上的点
+//* 从种子点中找出在 frame 上的点, 并复制给seeds
 void DepthFilter::getSeedsCopy(const FramePtr& frame, std::list<Seed>& seeds)
 {
   lock_t lock(seeds_mut_);

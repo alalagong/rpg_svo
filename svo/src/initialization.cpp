@@ -53,7 +53,7 @@ InitResult KltHomographyInit::addFirstFrame(FramePtr frame_ref)
 }
 
 /********************************
- * @ function:
+ * @ function: 使用光流对第一帧的特征点进行跟踪
  * 
  * @ param: 
  * 
@@ -242,20 +242,20 @@ void computeHomography(
 {
   vector<Vector2d > uv_ref(f_ref.size());
   vector<Vector2d > uv_cur(f_cur.size());
-  //[***step 1***] 三维世界坐标投影到归一化平面，这里已经减去偏移量？？？
+//[***step 1***] 三维世界坐标投影到归一化平面，这里已经减去偏移量？？？
   for(size_t i=0, i_max=f_ref.size(); i<i_max; ++i)
   {
     uv_ref[i] = vk::project2d(f_ref[i]);
     uv_cur[i] = vk::project2d(f_cur[i]);
   }
 
-  //[***step 2***] 构造单应类，从单应矩阵恢复R,t
+//[***step 2***] 构造单应类，从单应矩阵恢复R,t
   //单应矩阵类构造
   vk::Homography Homography(uv_ref, uv_cur, focal_length, reprojection_threshold);
   // 通过分解H得到T
   Homography.computeSE3fromMatches();
   
-  //[***step 3***] 把特征点三角化计算重投影误差，决定内点还是外点
+//[***step 3***] 把特征点三角化计算重投影误差，决定内点还是外点
   // 注意这里的点的顺序变了，先cur后ref，深度是在f_cur中的
   vector<int> outliers;
   vk::computeInliers(f_cur, f_ref,

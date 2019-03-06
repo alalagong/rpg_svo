@@ -193,7 +193,7 @@ void Matcher::createPatchFromPatchWithBorder()
  *              const Frame& cur_frame  当前帧
  *              Vector2d& px_cur        当前匹配的特征位置(输出)
  * 
- * @ note:      深度这么求? level之间没看懂???
+ * @ note:      深度这么求? 
  *******************************/
 bool Matcher::findMatchDirect(
     const Point& pt,
@@ -204,7 +204,7 @@ bool Matcher::findMatchDirect(
   if(!pt.getCloseViewObs(cur_frame.pos(), ref_ftr_))
     return false;
 //[ ***step 2*** ] 验证该特征的patch(+2), 是否超过该层图像的大小
-//* 特征点是在某一金字塔层上提取的
+  //* 特征点是在某一金字塔层上提取的
   if(!ref_ftr_->frame->cam_->isInFrame(
       ref_ftr_->px.cast<int>()/(1<<ref_ftr_->level), halfpatch_size_+2, ref_ftr_->level))
     return false;

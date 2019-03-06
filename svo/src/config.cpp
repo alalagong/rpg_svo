@@ -87,6 +87,7 @@ Config::Config() :
 
 Config& Config::getInstance()
 {
+  //* 保证只实例化一次
   static Config instance; // Instantiated on first use and guaranteed to be destroyed
   return instance;
 }

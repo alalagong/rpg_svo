@@ -26,13 +26,6 @@ namespace svo {
 namespace pose_optimizer {
 
 
-/********************************
- * @ function:
- * 
- * @ param: 
- * 
- * @ note:
- *******************************/
 void optimizeGaussNewton(
     const double reproj_thresh,
     const size_t n_iter,

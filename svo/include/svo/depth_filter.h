@@ -150,7 +150,7 @@ protected:
   FramePtr new_keyframe_;               //!< Next keyframe to extract new seeds.
   bool new_keyframe_set_;               //!< Do we have a new keyframe to process?.
   double new_keyframe_min_depth_;       //!< Minimum depth in the new keyframe. Used for range in new seeds.
-  // ? 这是最大值???
+  //* 这是均值(中位值)
   double new_keyframe_mean_depth_;      //!< Maximum depth in the new keyframe. Used for range in new seeds.
   vk::PerformanceMonitor permon_;       //!< Separate performance monitor since the DepthFilter runs in a parallel thread.
   Matcher matcher_;

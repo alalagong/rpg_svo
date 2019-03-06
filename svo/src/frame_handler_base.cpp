@@ -86,8 +86,9 @@ FrameHandlerBase::~FrameHandlerBase()
 
 bool FrameHandlerBase::startFrameProcessingCommon(const double timestamp)
 {
+  //? 这里每次都会进入这里进行resetall???
   // 设置开始才开始
-  if(set_start_)
+  if(set_start_)   //bug 为什么感觉这里是set_reset_??
   {
     resetAll();
     stage_ = STAGE_FIRST_FRAME; //第一帧阶段
@@ -102,7 +103,7 @@ bool FrameHandlerBase::startFrameProcessingCommon(const double timestamp)
   SVO_START_TIMER("tot_time");
   timer_.start();
 
-  // 不能在之前清理上一帧
+  //? 不能在之前清理上一帧???
   // some cleanup from last iteration, can't do before because of visualization
   map_.emptyTrash();
   return true;
@@ -111,7 +112,7 @@ bool FrameHandlerBase::startFrameProcessingCommon(const double timestamp)
 int FrameHandlerBase::finishFrameProcessingCommon(
     const size_t update_id,   //frame id
     const UpdateResult dropout,   //更新状态
-    const size_t num_observations) //上10帧观测的特征数
+    const size_t num_observations) //上一帧观测的特征数
 {
   SVO_DEBUG_STREAM("Frame: "<<update_id<<"\t fps-avg = "<< 1.0/acc_frame_timings_.getMean()<<"\t nObs = "<<acc_num_obs_.getMean());
   SVO_LOG(dropout);
@@ -140,6 +141,7 @@ int FrameHandlerBase::finishFrameProcessingCommon(
     tracking_quality_ = TRACKING_INSUFFICIENT;
   }
   // 否则直接重置
+  //? 啥时候进这里呢
   else if (dropout == RESULT_FAILURE)
     resetAll();
   if(set_reset_)
@@ -170,7 +172,7 @@ void FrameHandlerBase::setTrackingQuality(const size_t num_observations)
     SVO_WARN_STREAM_THROTTLE(0.5, "Tracking less than "<< Config::qualityMinFts() <<" features!");
     tracking_quality_ = TRACKING_INSUFFICIENT;
   }
-  // 特征丢失严重
+  //! 上一帧和当前帧的特征丢失严重, 问题
   const int feature_drop = static_cast<int>(std::min(num_obs_last_, Config::maxFts())) - num_observations;
   if(feature_drop > Config::qualityMaxFtsDrop())
   {

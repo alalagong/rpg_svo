@@ -339,7 +339,6 @@ double SparseImgAlign::computeResiduals(
  *******************************/
 int SparseImgAlign::solve()
 {
-
   //求解 H_*x_ = Jres_
   x_ = H_.ldlt().solve(Jres_);
   if((bool) std::isnan((double) x_[0]))

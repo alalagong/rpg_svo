@@ -103,6 +103,7 @@ void FastDetector::detect(
       const int k = static_cast<int>((xy.y*scale)/cell_size_)*grid_n_cols_
                   + static_cast<int>((xy.x*scale)/cell_size_); // 计算在第几个网格内
       //? 这个占据是什么意思呢？？？ 
+      //!答: 深度滤波中通过特征对齐的方式得到的特征点, 则会占据
       if(grid_occupancy_[k]) // 如果该网格已经有特征点则跳过
         continue;
       //* 计算 shiTomasiScore 得分, 取最大的放在grid里

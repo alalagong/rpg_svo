@@ -49,8 +49,8 @@ public:
     {}
   } options_;
 
-  size_t n_matches_;
-  size_t n_trials_;
+  size_t n_matches_;  //!<  匹配上的cell数目
+  size_t n_trials_;   //!<  尝试匹配的次数
 
   Reprojector(vk::AbstractCamera* cam, Map& map);
 

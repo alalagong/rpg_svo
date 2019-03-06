@@ -313,7 +313,7 @@ void MapPointCandidates::newCandidatePoint(Point* point, double depth_sigma2)
  * 
  * @ param: 
  * 
- * @ note: 原来不是投影上就加入的啊？？？
+ * @ note:  原来不是投影上就加入的啊？？？
  *          这个feature哪里来的呢？？？不是图像提取的
  *          point对应的feature对应了frame，frame却没有feature？？？奇怪 19/1/6
  *******************************/
