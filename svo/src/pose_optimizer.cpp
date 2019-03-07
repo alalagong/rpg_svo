@@ -72,7 +72,7 @@ void optimizeGaussNewton(
   for(size_t iter=0; iter<n_iter; iter++)
   {
     // overwrite scale
-    // 第五次迭代会重新改变一次scale ??? 什么操作
+    // 第五次迭代会重新改变一次scale 
     if(iter == 5)
     //* 之前求得J里面不包括fx, 因此阈值也要除掉fx 
     //* 越往后由于迭代, 误差的标准差会越小(这是个估计值把)
@@ -179,7 +179,8 @@ void optimizeGaussNewton(
     error_init = sqrt(vk::getMedian(chi2_vec_init))*frame->cam_->errorMultiplier2();
   if(!chi2_vec_final.empty())
     error_final = sqrt(vk::getMedian(chi2_vec_final))*frame->cam_->errorMultiplier2();
-  //? 这是什么尺度???
+  //? 这是什么尺度
+  //?答 误差的尺度吧, 反应误差大小
   estimated_scale *= frame->cam_->errorMultiplier2();
   if(verbose)
     std::cout << "n deleted obs = " << n_deleted_refs

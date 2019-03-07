@@ -213,6 +213,7 @@ void BenchmarkNode::runBlenderBenchmark(const std::string& dataset_dir)
     Sophus::SE3 T_w_gt(it->q_, it->t_);
 
     // Set reference frame with depth
+    //* 初始化第一帧用深度图直接初始化
     if(frame_count_ == 0)
     {
       // set reference frame at ground-truth pose

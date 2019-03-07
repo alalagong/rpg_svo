@@ -86,9 +86,9 @@ FrameHandlerBase::~FrameHandlerBase()
 
 bool FrameHandlerBase::startFrameProcessingCommon(const double timestamp)
 {
-  //? 这里每次都会进入这里进行resetall???
+  //* reset之后
   // 设置开始才开始
-  if(set_start_)   //bug 为什么感觉这里是set_reset_??
+  if(set_start_)  
   {
     resetAll();
     stage_ = STAGE_FIRST_FRAME; //第一帧阶段

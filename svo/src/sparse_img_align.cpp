@@ -129,7 +129,7 @@ void SparseImgAlign::precomputeReferencePatches()
   const int stride = ref_img.cols; //当前层图像的列数
   const float scale = 1.0f/(1<<level_); //金字塔的尺度, 每层2倍
   const Vector3d ref_pos = ref_frame_->pos(); //当前帧位置
-  const double focal_length = ref_frame_->cam_->errorMultiplier2();  //返回 fx_ ??
+  const double focal_length = ref_frame_->cam_->errorMultiplier2();  //返回 fx_
   size_t feature_counter = 0;
   std::vector<bool>::iterator visiblity_it = visible_fts_.begin();
 
@@ -246,7 +246,7 @@ double SparseImgAlign::computeResiduals(
   const int border = patch_halfsize_+1; 
   const float scale = 1.0f/(1<<level_); 
   const Vector3d ref_pos(ref_frame_->pos()); //参考图像帧位置
-  float chi2 = 0.0; //X^2检验用???
+  float chi2 = 0.0; //X^2检验用
   size_t feature_counter = 0; // is used to compute the index of the cached jacobian
   std::vector<bool>::iterator visiblity_it = visible_fts_.begin();
   //对每个ref图像上的特征点进行循环

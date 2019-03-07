@@ -102,6 +102,8 @@ void DepthFilter::addFrame(FramePtr frame)
 
 //* 增加一新的关键帧
 //? 这里的传入参数 depth 是哪里来的???
+//?答: 这里的两个深度是根据关键帧上其它点的深度计算得到, 
+//?    因为SVO是面向无人机下视, 因此场景深度基本是单一平面,使用平均深度可以作为较好的初值
 void DepthFilter::addKeyframe(FramePtr frame, double depth_mean, double depth_min)
 {
   new_keyframe_min_depth_ = depth_min;
@@ -138,7 +140,7 @@ void DepthFilter::initializeSeeds(FramePtr frame)
   seeds_updating_halt_ = true;
   lock_t lock(seeds_mut_); // by locking the updateSeeds function stops
   ++Seed::batch_counter;  // batch计数增加
-  //[ ***step 4*** ] 增加种子点到列表中
+  //[ ***step 4*** ] 增加种子点到列表中, 种子点都是新提取的点!!!
   std::for_each(new_features.begin(), new_features.end(), [&](Feature* ftr){
     seeds_.push_back(Seed(ftr, new_keyframe_mean_depth_, new_keyframe_min_depth_));
   });

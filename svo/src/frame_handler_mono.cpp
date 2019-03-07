@@ -38,7 +38,7 @@ FrameHandlerMono::FrameHandlerMono(vk::AbstractCamera* cam) :
 {
   initialize();
 }
-//* 构造函数
+//* 初始化函数
 void FrameHandlerMono::initialize()
 {
 //[ ***step 1*** ] 初始化fast角点检测类共享指针, 子类的fastdetector赋值给基类共享指针
@@ -81,6 +81,7 @@ void FrameHandlerMono::addImage(const cv::Mat& img, const double timestamp)
   // create new frame
 //[ ***step 2*** ] 创建一个新的帧, 会构建图像金字塔
   SVO_START_TIMER("pyramid_creation");
+  //* 这个 reset 是共享指针的
   new_frame_.reset(new Frame(cam_, img.clone(), timestamp)); // 共享指针的 reset
   SVO_STOP_TIMER("pyramid_creation");
 
@@ -140,7 +141,7 @@ FrameHandlerBase::UpdateResult FrameHandlerMono::processSecondFrame()
   double depth_mean, depth_min;
   frame_utils::getSceneDepth(*new_frame_, depth_mean, depth_min);
   depth_filter_->addKeyframe(new_frame_, depth_mean, 0.5*depth_min);
-//[ ***step 4*** ] 将新的一帧作为关键帧加入到地图中, 重置初始化的类, 
+//[ ***step 4*** ] 将第二帧作为关键帧加入到地图中, 重置初始化的类, 
   // add frame to map
   map_.addKeyframe(new_frame_);
   stage_ = STAGE_DEFAULT_FRAME;
@@ -165,13 +166,13 @@ FrameHandlerBase::UpdateResult FrameHandlerMono::processFrame()
   SVO_STOP_TIMER("sparse_img_align");
   SVO_LOG(img_align_n_tracked);
   SVO_DEBUG_STREAM("Img Align:\t Tracked = " << img_align_n_tracked);
-//[ ***step 3*** ] 将关键帧上的3D点, 地图点投影到当前帧, 并进行特征匹配得到精确地特征点位置(每个cell里一个)
+//[ ***step 3*** ] 将关键帧上的3D点, 候选地图点投影到当前帧, 并进行特征匹配得到精确地特征点位置(每个cell里一个)
   // map reprojection & feature alignment
   SVO_START_TIMER("reproject");
   reprojector_.reprojectMap(new_frame_, overlap_kfs_);
   SVO_STOP_TIMER("reproject");
   const size_t repr_n_new_references = reprojector_.n_matches_; // 匹配的特征点
-  const size_t repr_n_mps = reprojector_.n_trias_;              // 尝试匹配的次数(点数)
+  const size_t repr_n_mps = reprojector_.n_trials_;              // 尝试匹配的次数(点数)
   SVO_LOG2(repr_n_mps, repr_n_new_references);
   SVO_DEBUG_STREAM("Reprojection:\t nPoints = "<<repr_n_mps<<"\t \t nMatches = "<<repr_n_new_references);
   //* 如果匹配的点少, 则还是使用上一帧的位姿(匹配点少, 则不可信)
@@ -183,7 +184,7 @@ FrameHandlerBase::UpdateResult FrameHandlerMono::processFrame()
     return RESULT_FAILURE;
   }
 //[ ***step 4*** ] 对当前帧进行位姿优化 (该帧上的重投影误差)
-//*经过之前的特征对齐, 特征点的位置变了, 因此要进行这个单帧位姿的优化(但是这个3D点准确么???)
+//*经过之前的特征对齐, 特征点的位置变了, 因此要进行这个单帧位姿的优化
   // pose optimization
   SVO_START_TIMER("pose_optimizer");
   size_t sfba_n_edges_final; // 误差观测数目
@@ -224,7 +225,7 @@ FrameHandlerBase::UpdateResult FrameHandlerMono::processFrame()
     depth_filter_->addFrame(new_frame_);
     return RESULT_NO_KEYFRAME;
   }
-//[ ***step 7*** ] 满足上面的条件就设置成关键帧(提取5个关键点), 把该帧加入到point的参考帧, 以及把地图点加入参考帧??
+//[ ***step 7*** ] 满足上面的条件就设置成关键帧(提取5个关键点), 把该帧加入到point的参考帧, 以及把地图点加入参考帧
   new_frame_->setKeyframe();
   SVO_DEBUG_STREAM("New keyframe selected.");
 
@@ -232,7 +233,8 @@ FrameHandlerBase::UpdateResult FrameHandlerMono::processFrame()
   for(Features::iterator it=new_frame_->fts_.begin(); it!=new_frame_->fts_.end(); ++it)
     if((*it)->point != NULL)
       (*it)->point->addFrameRef(*it);
-  //? 这个怎么又加入到 frame 里投影时候不是加过????
+  //? 这个怎么又加入到 frame 里投影时候不是加过???
+  //?答: 投影时候增加的是原来的地图点, 加入深度滤波之后又重新提取了特征点, 因此这是新的
   map_.point_candidates_.addCandidatePointToFrame(new_frame_);
 
 //[ ***step 8*** ] 如果定义了BA, 就使用 localBA 对关键帧们进行优化

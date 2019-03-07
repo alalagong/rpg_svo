@@ -63,7 +63,8 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   typedef boost::unique_lock<boost::mutex> lock_t; // 线程锁
-  //? 这个是啥???
+  //? 这个是啥
+  //?答: 回调函数, 为了将收敛的点传给 point_candidate_
   typedef boost::function<void ( Point*, double )> callback_t;
 
   /// Depth-filter config parameters

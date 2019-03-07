@@ -130,9 +130,9 @@ void Reprojector::reprojectMap(
   }
   SVO_STOP_TIMER("reproject_kfs");
   //?<2019.3.5> 地图候选点和之前的 closekeyframe 不重复么
-
+  //? 答: 不重复，候选点是未分配的收敛点，关键帧上是已经收敛的地图点
   //? 怎么选的候选点，还没看<2019/1/10>
-  //答: 候选点是深度滤波得到的收敛的点
+  //? 答: 候选点是深度滤波得到的收敛的点
 
   // Now project all point candidates
   SVO_START_TIMER("reproject_candidates");

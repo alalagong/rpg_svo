@@ -136,7 +136,7 @@ void twoViewBA(
 /********************************
  * @ function:  
  * 
- * @ param:     Frame* center_kf                  不知道干啥用的???
+ * @ param:     Frame* center_kf                  当前帧
  *              set<FramePtr>* core_kfs           待优化的核心关键帧
  *              Map* map                          地图     
  *              size_t& n_incorrect_edges_1       

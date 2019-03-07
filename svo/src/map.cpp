@@ -149,7 +149,7 @@ void Map::addKeyframe(FramePtr new_keyframe)
 }
 
 /********************************
- * @ function: 找到接近frame的有共视关系的关键帧
+ * @ function: 利用关键点找到接近frame的有共视关系的关键帧
  * 
  * @ param: 
  * 
@@ -174,7 +174,7 @@ void Map::getCloseKeyframes(
 //[***step 3***]有则返回重叠的关键帧指针，和他们之间的距离close_kfs(pair list)
         close_kfs.push_back(
             std::make_pair(
-              // 为什么这里的translation不求逆呢？？？
+              //? 为什么这里的translation不求逆呢？？？
               // 因为这里的符号是一样的，即都是world原点在frame系下到frame的距离
               // 而getFurthestKeyframe函数里面的不一样
                 kf, (frame->T_f_w_.translation()-kf->T_f_w_.translation()).norm()));

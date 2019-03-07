@@ -102,7 +102,7 @@ int getBestSearchLevel(
  *            const int halfpatch_size    patch一半大小 + 1
  *            uint8_t* patch              patch_with_border_头指针
  * 
- * @ note:    search_level 和 level_ref 怎么个意思???
+ * @ note:    search_level 和 level_ref 怎么个意思, 一个是当前帧的, 一个是参考帧的变换到0层联系起来
  *******************************/
 void warpAffine(
     const Matrix2d& A_cur_ref,
@@ -213,7 +213,7 @@ bool Matcher::findMatchDirect(
 //[ ***step 3*** ] 根据ref_ftr_周围的8*8 patch求得ref到cur之间的1D仿射矩阵
   warp::getWarpMatrixAffine(
       *ref_ftr_->frame->cam_, *cur_frame.cam_, ref_ftr_->px, ref_ftr_->f,
-      //! 深度为什么这么算??? 
+      //! 深度为什么这么算???  可能还是无人机下视的原因把
       //* 这里深度本就是不准确的,为了求深度才进行的匹配
       (ref_ftr_->frame->pos() - pt.pos_).norm(), 
       cur_frame.T_f_w_ * ref_ftr_->frame->T_f_w_.inverse(), ref_ftr_->level, A_cur_ref_);
@@ -361,7 +361,7 @@ bool Matcher::findEpipolarMatchDirect(
   // for matching, precompute sum and sum2 of warped reference patch
   int pixel_sum = 0;
   int pixel_sum_square = 0;
-  PatchScore patch_score(patch_); //? 使用cur上的先计算的patch_作为ref_patch???
+  PatchScore patch_score(p`atch_); //? 使用cur上的先计算的patch_作为ref_patch??
 
   //[ ***step 6*** ] 在之前求出的单位平面的极线段上进行搜索ZMSSD得分最小的patch
   // now we sample along the epipolar line
