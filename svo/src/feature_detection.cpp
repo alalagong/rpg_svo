@@ -70,7 +70,7 @@ void FastDetector::detect(
     const double detection_threshold,
     Features& fts)
 {
-  //? 每个grid里面一个特征点? 
+  //? 每个grid里面一个特征点
   Corners corners(grid_n_cols_*grid_n_rows_, Corner(0,0,detection_threshold,0,0.0f));
   //* 对每一金字塔层进行循环 
   for(int L=0; L<n_pyr_levels_; ++L)
