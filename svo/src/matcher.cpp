@@ -35,7 +35,7 @@ namespace warp {
  *                            
  * @ param:     输入ref的相机参数,像素坐标,归一化坐标,深度,层数
  *              输入cur的相机参数,ref到cur的变换矩阵
- *              返回2*2的放射矩阵
+ *              返回2*2的仿射矩阵
  * 
  * @ note:      求法很有意思
  *              !这里的金字塔层数有什么意义??
@@ -69,7 +69,7 @@ void getWarpMatrixAffine(
   const Vector2d px_dv(cam_cur.world2cam(T_cur_ref*(xyz_dv_ref)));
   //* 把原来的当做轴, 变换得到对应的轴就是两列(相当于原来的是(1,0)和(0,1))
   //* 参见https://images2015.cnblogs.com/blog/120296/201602/120296-20160222070732869-1123994329.png 后几个图 
-  //* 这个A_cur_ref是从金字塔层到cur第0层的变换 
+  //* 这个A_cur_ref是从ref金字塔层到cur第0层的变换 
   A_cur_ref.col(0) = (px_du - px_cur)/halfpatch_size;
   A_cur_ref.col(1) = (px_dv - px_cur)/halfpatch_size;
 }
@@ -213,7 +213,8 @@ bool Matcher::findMatchDirect(
 //[ ***step 3*** ] 根据ref_ftr_周围的8*8 patch求得ref到cur之间的1D仿射矩阵
   warp::getWarpMatrixAffine(
       *ref_ftr_->frame->cam_, *cur_frame.cam_, ref_ftr_->px, ref_ftr_->f,
-      //! 深度为什么这么算???  可能还是无人机下视的原因把
+      //? 深度为什么这么算??? 
+      //! 深度就是这样定义的，对单位平面坐标进行了归一化
       //* 这里深度本就是不准确的,为了求深度才进行的匹配
       (ref_ftr_->frame->pos() - pt.pos_).norm(), 
       cur_frame.T_f_w_ * ref_ftr_->frame->T_f_w_.inverse(), ref_ftr_->level, A_cur_ref_);
