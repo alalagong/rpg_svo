@@ -362,7 +362,7 @@ bool Matcher::findEpipolarMatchDirect(
   // for matching, precompute sum and sum2 of warped reference patch
   int pixel_sum = 0;
   int pixel_sum_square = 0;
-  PatchScore patch_score(p`atch_); //? 使用cur上的先计算的patch_作为ref_patch??
+  PatchScore patch_score(patch_); //? 使用cur上的先计算的patch_作为ref_patch??
 
   //[ ***step 6*** ] 在之前求出的单位平面的极线段上进行搜索ZMSSD得分最小的patch
   // now we sample along the epipolar line

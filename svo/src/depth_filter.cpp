@@ -39,13 +39,26 @@ int Seed::seed_counter = 0;
 Seed::Seed(Feature* ftr, float depth_mean, float depth_min) :
     batch_id(batch_counter),
     id(seed_counter++),           // 每次新建一个种子就加一
+    live_time(0),
     ftr(ftr),
     a(10),
     b(10),
     mu(1.0/depth_mean),           // 逆深度的均值
     z_range(1.0/depth_min),       // 逆深度的最大值
     sigma2(z_range*z_range/36)    // 99% 的概率在这个区间的协方差? 为啥这么求
-{}
+{
+}
+Seed::~Seed() 
+{
+  if(live_time != 0)
+  {
+    // if(!DepthFilter::f.is_open())
+    //   std::cout<<"!!!!!!"<<std::endl;   
+    // DepthFilter::f << "No. "<< id << "seed live " << live_time << " frames"<<endl;
+    std::cout<< "No. "<< id << " seed live " << live_time << " frames"<<endl;
+  }
+}
+
 //* 深度滤波器的构造函数
 DepthFilter::DepthFilter(feature_detection::DetectorPtr feature_detector, callback_t seed_converged_cb) :
     feature_detector_(feature_detector),
@@ -55,10 +68,14 @@ DepthFilter::DepthFilter(feature_detection::DetectorPtr feature_detector, callba
     new_keyframe_set_(false),
     new_keyframe_min_depth_(0.0),
     new_keyframe_mean_depth_(0.0)             //? 最大值? 均值?
-{}
+{
+  std::string file = "/home/gong/catkin_ws/src/rpg_svo/seeds.txt";
+  f.open(file.c_str());
+}
 //* 析构函数 
 DepthFilter::~DepthFilter()
 {
+  f.close();
   stopThread();
   SVO_INFO_STREAM("DepthFilter destructed.");
 }
@@ -162,6 +179,9 @@ void DepthFilter::removeKeyframe(FramePtr frame)
   {
     if(it->ftr->frame == frame.get())
     {
+      if(!f.is_open())
+        std::cout<<"!!!!!!"<<std::endl;  
+      f <<it->id << ", " << it->live_time << ", 0"<<endl;
       it = seeds_.erase(it);
       ++n_removed;
     }
@@ -260,9 +280,13 @@ void DepthFilter::updateSeeds(FramePtr frame)
   //[ ***step 2*** ] 剔除时间太久的种子点, 当前batch_id - seed_batch_id
     // check if seed is not already too old
     if((Seed::batch_counter - it->batch_id) > options_.max_n_kfs) {
+      if(!f.is_open())
+        std::cout<<"!!!!!!"<<std::endl;  
+      f << it->id << ", " << it->live_time << ", 0"<<endl;
       it = seeds_.erase(it);
       continue;
     }
+
   //[ ***step 3*** ] 求当前帧 到 种子点特征点所在帧的变换
     // check if point is visible in the current image
     SE3 T_ref_cur = it->ftr->frame->T_f_w_ * frame->T_f_w_.inverse();
@@ -332,11 +356,17 @@ void DepthFilter::updateSeeds(FramePtr frame)
         seed_converged_cb_(point, it->sigma2); // put in candidate list
       }
       //
+      if(!f.is_open())
+        std::cout<<"!!!!!!"<<std::endl;  
+      f << it->id << ", " << it->live_time << ", 1"<<endl;
       it = seeds_.erase(it);
     }
     else if(isnan(z_inv_min))
     {
       SVO_WARN_STREAM("z_min is NaN");
+      if(!f.is_open())
+        std::cout<<"!!!!!!"<<std::endl;  
+      f << it->id << ", " << it->live_time << ", 0"<<endl;
       it = seeds_.erase(it);
     }
     else
@@ -366,7 +396,7 @@ void DepthFilter::getSeedsCopy(const FramePtr& frame, std::list<Seed>& seeds)
 //* 论文: Video-based, Real-Time Multi View Stereo 
 void DepthFilter::updateSeed(const float x, const float tau2, Seed* seed)
 {
-
+  seed->live_time++;
   float norm_scale = sqrt(seed->sigma2 + tau2);
   if(std::isnan(norm_scale))
     return;

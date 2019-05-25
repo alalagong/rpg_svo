@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/gong/catkin_ws/devel/lib/svo/test_pipeline",
+            "program": "/home/gong/catkin_ws/devel/lib/svo/test_sparse_img_align",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

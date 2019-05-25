@@ -41,6 +41,7 @@ struct Seed
   static int seed_counter;     //!< 总的种子点数量
   int batch_id;                //!< Batch id is the id of the keyframe for which the seed was created.
   int id;                      //!< Seed ID, only used for visualization.
+  int live_time;               //!< seed live through how many frames
   Feature* ftr;                //!< Feature in the keyframe for which the depth should be computed.
   float a;                     //!< a of Beta distribution: When high, probability of inlier is large.
   float b;                     //!< b of Beta distribution: When high, probability of outlier is large.
@@ -48,7 +49,9 @@ struct Seed
   float z_range;               //!< Max range of the possible depth.
   float sigma2;                //!< Variance of normal distribution.
   Matrix2d patch_cov;          //!< Patch covariance in reference image.
+  
   Seed(Feature* ftr, float depth_mean, float depth_min); //* 每次构造就增加seed_counter
+  ~Seed();
 };
 
 /// Depth filter implements the Bayesian Update proposed in:
@@ -137,6 +140,8 @@ public:
       const Vector3d& f,
       const double z,
       const double px_error_angle);
+
+  std::ofstream f;
 
 protected:
   feature_detection::DetectorPtr feature_detector_; //!< 检测特征点 
